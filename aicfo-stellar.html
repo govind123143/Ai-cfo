@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrbitFi — AI CFO on Stellar</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #040508;
+    --deep: #080c14;
+    --card: #0d1420;
+    --border: rgba(99,179,237,0.12);
+    --stellar: #63b3ed;
+    --stellar2: #4299e1;
+    --green: #48bb78;
+    --green2: #38a169;
+    --red: #fc8181;
+    --gold: #f6d860;
+    --muted: #4a5568;
+    --text: #e2e8f0;
+    --dim: #718096;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND GRID ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── GLOW ORBS ── */
+  .orb {
+    position:fixed; border-radius:50%;
+    filter:blur(120px); pointer-events:none; z-index:0;
+  }
+  .orb1 { width:600px;height:600px; background:rgba(99,179,237,0.06); top:-200px; right:-200px; }
+  .orb2 { width:400px;height:400px; background:rgba(72,187,120,0.05); bottom:-100px; left:-100px; }
+
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 48px;
+    background:rgba(4,5,8,0.85);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+  }
+
+  .logo {
+    font-family:'Syne',sans-serif;
+    font-size:22px; font-weight:800;
+    letter-spacing:-0.5px;
+    color:#fff;
+  }
+  .logo span { color:var(--stellar); }
+
+  .nav-links { display:flex; gap:32px; align-items:center; }
+  .nav-links a {
+    color:var(--dim); font-size:12px; text-decoration:none;
+    letter-spacing:1px; text-transform:uppercase;
+    transition:color 0.2s;
+  }
+  .nav-links a:hover { color:var(--stellar); }
+
+  .nav-btn {
+    background:var(--stellar); color:var(--black);
+    border:none; padding:10px 24px; border-radius:4px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px; font-weight:500; cursor:pointer;
+    letter-spacing:1px; text-transform:uppercase;
+    transition:all 0.2s;
+  }
+  .nav-btn:hover { background:#fff; }
+
+  /* ── SECTIONS ── */
+  section { position:relative; z-index:1; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center; padding:120px 24px 80px;
+  }
+
+  .hero-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid var(--border);
+    padding:6px 16px; border-radius:2px;
+    font-size:11px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--stellar);
+    margin-bottom:40px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .badge-dot {
+    width:6px;height:6px; border-radius:50%;
+    background:var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1);}
+    50%{opacity:0.4;transform:scale(0.8);}
+  }
+
+  .hero h1 {
+    font-family:'Syne',sans-serif;
+    font-size:clamp(48px,8vw,96px);
+    font-weight:800; line-height:0.95;
+    letter-spacing:-3px;
+    color:#fff;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .hero h1 .accent { color:var(--stellar); }
+  .hero h1 .line2 { display:block; }
+
+  .hero-sub {
+    margin-top:32px;
+    font-size:14px; line-height:1.8;
+    color:var(--dim); max-width:520px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-cta {
+    margin-top:48px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background:var(--stellar); color:var(--black);
+    border:none; padding:16px 36px; border-radius:4px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px; font-weight:500; cursor:pointer;
+    letter-spacing:1px; text-transform:uppercase;
+    transition:all 0.2s;
+  }
+  .btn-primary:hover { background:#fff; transform:translateY(-2px); }
+
+  .btn-outline {
+    background:transparent; color:var(--stellar);
+    border:1px solid var(--border); padding:16px 36px; border-radius:4px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px; cursor:pointer;
+    letter-spacing:1px; text-transform:uppercase;
+    transition:all 0.2s;
+  }
+  .btn-outline:hover { border-color:var(--stellar); background:rgba(99,179,237,0.05); }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    overflow:hidden; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    padding:12px 0; background:rgba(8,12,20,0.8);
+  }
+  .ticker {
+    display:flex; gap:64px; width:max-content;
+    animation: ticker 30s linear infinite;
+  }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .tick-item { display:flex; align-items:center; gap:10px; white-space:nowrap; font-size:12px; }
+  .tick-name { color:var(--dim); }
+  .tick-val { color:#fff; }
+  .tick-up { color:var(--green); }
+  .tick-down { color:var(--red); }
+
+  /* ── DASHBOARD ── */
+  .dashboard {
+    padding:100px 48px;
+    max-width:1400px; margin:0 auto;
+  }
+
+  .section-label {
+    font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--stellar); margin-bottom:16px;
+  }
+  .section-title {
+    font-family:'Syne',sans-serif;
+    font-size:clamp(32px,4vw,48px); font-weight:800;
+    color:#fff; letter-spacing:-1px; line-height:1.1;
+    margin-bottom:48px;
+  }
+
+  /* Portfolio grid */
+  .portfolio-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    grid-template-rows:auto auto;
+    gap:16px;
+  }
+
+  .card {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:8px; padding:28px;
+    position:relative; overflow:hidden;
+    transition:border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color:rgba(99,179,237,0.3); transform:translateY(-2px); }
+
+  .card::after {
+    content:''; position:absolute;
+    top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(99,179,237,0.4), transparent);
+  }
+
+  .card-label {
+    font-size:10px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--dim); margin-bottom:12px;
+  }
+  .card-value {
+    font-family:'Syne',sans-serif;
+    font-size:36px; font-weight:800; color:#fff; letter-spacing:-1px;
+  }
+  .card-value.green { color:var(--green); }
+  .card-value.stellar { color:var(--stellar); }
+  .card-sub { font-size:11px; color:var(--dim); margin-top:8px; }
+  .card-sub .up { color:var(--green); }
+  .card-sub .down { color:var(--red); }
+
+  /* Span cards */
+  .span2 { grid-column: span 2; }
+  .span3 { grid-column: span 3; }
+
+  /* ── ALLOCATION BAR ── */
+  .alloc-bar {
+    height:8px; border-radius:4px;
+    background:var(--muted); overflow:hidden; margin:16px 0 8px;
+    display:flex;
+  }
+  .alloc-seg { height:100%; transition:width 0.6s ease; }
+  .seg-lending { background:var(--stellar); }
+  .seg-lp { background:var(--green); }
+  .seg-arb { background:var(--gold); }
+  .seg-idle { background:var(--muted); }
+
+  .alloc-legend {
+    display:flex; gap:20px; flex-wrap:wrap; font-size:11px;
+  }
+  .legend-item { display:flex; align-items:center; gap:6px; color:var(--dim); }
+  .legend-dot { width:8px;height:8px; border-radius:2px; }
+
+  /* ── CHART ── */
+  .mini-chart { position:relative; height:80px; margin-top:16px; }
+  .chart-svg { width:100%; height:100%; }
+
+  /* ── AI ACTIVITY FEED ── */
+  .feed { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
+  .feed-item {
+    display:flex; align-items:flex-start; gap:16px;
+    padding:16px; border-radius:6px;
+    background:rgba(99,179,237,0.04);
+    border:1px solid var(--border);
+    animation: slideIn 0.4s ease both;
+  }
+  @keyframes slideIn {
+    from{opacity:0;transform:translateX(-10px)}
+    to{opacity:1;transform:translateX(0)}
+  }
+
+  .feed-icon {
+    width:32px;height:32px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; flex-shrink:0;
+  }
+  .icon-green { background:rgba(72,187,120,0.15); }
+  .icon-blue { background:rgba(99,179,237,0.15); }
+  .icon-gold { background:rgba(246,216,96,0.15); }
+  .icon-red { background:rgba(252,129,129,0.15); }
+
+  .feed-content { flex:1; }
+  .feed-action { font-size:13px; color:#fff; margin-bottom:4px; }
+  .feed-meta { font-size:11px; color:var(--dim); }
+  .feed-profit { font-size:13px; color:var(--green); font-weight:500; margin-left:auto; white-space:nowrap; }
+
+  /* ── YIELD TABLE ── */
+  .yield-table { width:100%; border-collapse:collapse; margin-top:20px; }
+  .yield-table th {
+    text-align:left; font-size:10px; letter-spacing:2px;
+    text-transform:uppercase; color:var(--dim);
+    padding:12px 16px; border-bottom:1px solid var(--border);
+  }
+  .yield-table td {
+    padding:16px; font-size:13px;
+    border-bottom:1px solid rgba(99,179,237,0.05);
+    vertical-align:middle;
+  }
+  .yield-table tr:hover td { background:rgba(99,179,237,0.03); }
+  .proto-name { color:#fff; font-weight:500; }
+  .proto-type {
+    font-size:10px; letter-spacing:1px;
+    text-transform:uppercase; color:var(--dim);
+    margin-top:2px;
+  }
+  .apy { color:var(--green); font-weight:500; }
+  .status-active {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:11px; color:var(--green);
+  }
+  .status-dot { width:6px;height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+  .status-idle { font-size:11px; color:var(--dim); }
+
+  .ai-badge {
+    background:rgba(99,179,237,0.1);
+    border:1px solid rgba(99,179,237,0.2);
+    color:var(--stellar); font-size:10px;
+    padding:3px 10px; border-radius:2px;
+    letter-spacing:1px;
+  }
+
+  /* ── ARB SCANNER ── */
+  .arb-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; }
+  .arb-item {
+    padding:20px;
+    background:rgba(246,216,96,0.04);
+    border:1px solid rgba(246,216,96,0.1);
+    border-radius:6px;
+    transition:all 0.2s;
+  }
+  .arb-item:hover { border-color:rgba(246,216,96,0.3); }
+  .arb-pair { font-size:14px; color:#fff; margin-bottom:8px; }
+  .arb-spread {
+    font-family:'Syne',sans-serif;
+    font-size:28px; font-weight:800; color:var(--gold);
+    letter-spacing:-1px;
+  }
+  .arb-detail { font-size:11px; color:var(--dim); margin-top:6px; }
+  .exec-btn {
+    margin-top:12px; width:100%;
+    background:rgba(246,216,96,0.1);
+    border:1px solid rgba(246,216,96,0.2);
+    color:var(--gold); padding:10px;
+    border-radius:4px; font-family:'JetBrains Mono',monospace;
+    font-size:11px; letter-spacing:1px; text-transform:uppercase;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .exec-btn:hover { background:rgba(246,216,96,0.2); }
+
+  /* ── RISK GUARD ── */
+  .risk-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; }
+  .risk-item {
+    padding:20px; border-radius:6px;
+    border:1px solid var(--border);
+    background:rgba(13,20,32,0.8);
+  }
+  .risk-metric { font-size:11px; color:var(--dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .risk-value { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; }
+  .safe { color:var(--green); }
+  .warning { color:var(--gold); }
+  .danger { color:var(--red); }
+
+  .risk-bar-wrap { margin-top:10px; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; }
+  .risk-bar-fill { height:100%; border-radius:2px; transition:width 0.6s; }
+
+  /* ── HERO STATS ── */
+  .hero-stats {
+    display:flex; gap:48px; margin-top:64px; flex-wrap:wrap; justify-content:center;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .hero-stat { text-align:center; }
+  .hs-value {
+    font-family:'Syne',sans-serif; font-size:32px;
+    font-weight:800; color:#fff; letter-spacing:-1px;
+  }
+  .hs-value span { color:var(--stellar); }
+  .hs-label { font-size:11px; color:var(--dim); letter-spacing:1px; text-transform:uppercase; margin-top:4px; }
+
+  /* ── SECTION DIVIDER ── */
+  .divider {
+    height:1px; background:var(--border);
+    max-width:1400px; margin:0 auto;
+  }
+
+  /* ── STELLAR BADGE ── */
+  .stellar-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid var(--border); padding:8px 20px;
+    border-radius:2px; font-size:11px; color:var(--dim);
+    letter-spacing:1px; margin-top:48px;
+    animation: fadeUp 0.8s 0.5s ease both;
+  }
+  .stellar-badge strong { color:var(--stellar); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top:1px solid var(--border);
+    padding:40px 48px;
+    display:flex; align-items:center; justify-content:space-between;
+    max-width:1400px; margin:0 auto;
+    font-size:12px; color:var(--dim);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(20px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .animate-in {
+    opacity:0; transform:translateY(20px);
+    transition:all 0.6s ease;
+  }
+  .animate-in.visible {
+    opacity:1; transform:translateY(0);
+  }
+
+  /* ── NUMBER COUNTER ── */
+  .counter { display:inline-block; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--black); }
+  ::-webkit-scrollbar-thumb { background:var(--muted); border-radius:2px; }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:900px) {
+    nav { padding:16px 24px; }
+    .nav-links { display:none; }
+    .dashboard { padding:60px 24px; }
+    .portfolio-grid { grid-template-columns:1fr; }
+    .span2,.span3 { grid-column:span 1; }
+    .arb-grid { grid-template-columns:1fr; }
+    .risk-grid { grid-template-columns:1fr 1fr; }
+    footer { flex-direction:column; gap:16px; text-align:center; }
+  }
+
+  /* Blinking cursor */
+  .cursor::after {
+    content:'_'; animation:blink 1s infinite;
+    color:var(--stellar);
+  }
+  @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+  /* Live indicator */
+  .live {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:11px; color:var(--green); letter-spacing:1px;
+  }
+  .live-dot { width:6px;height:6px; border-radius:50%; background:var(--green); animation:pulse 1.5s infinite; }
+
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Orbit<span>Fi</span></div>
+  <div class="nav-links">
+    <a href="#dashboard">Dashboard</a>
+    <a href="#yield">Yield</a>
+    <a href="#arbitrage">Arbitrage</a>
+    <a href="#risk">Risk Guard</a>
+  </div>
+  <button class="nav-btn" onclick="connectWallet()">Connect Wallet</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="badge-dot"></span>
+    Live on Stellar Testnet
+  </div>
+
+  <h1>
+    Your AI <span class="accent">CFO</span>
+    <span class="line2">Never Sleeps<span class="cursor"></span></span>
+  </h1>
+
+  <p class="hero-sub">
+    AI-powered portfolio manager that maximizes crypto yield,
+    executes arbitrage, and guards your assets 24/7 — built on Stellar.
+  </p>
+
+  <div class="hero-cta">
+    <button class="btn-primary" onclick="scrollToDashboard()">View Live Demo</button>
+    <button class="btn-outline">Read Docs</button>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hs-value"><span id="tvl-counter">0</span></div>
+      <div class="hs-label">Total Value Locked</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hs-value"><span id="apy-counter">0</span><span>%</span></div>
+      <div class="hs-label">Avg APY Earned</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hs-value"><span id="tx-counter">0</span></div>
+      <div class="hs-label">AI Executions Today</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hs-value"><span id="arb-counter">0</span></div>
+      <div class="hs-label">Arb Profits (24h)</div>
+    </div>
+  </div>
+
+  <div class="stellar-badge">
+    Powered by <strong>Stellar Soroban</strong> · Smart contracts · Path Payments · Blend Protocol
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker"></div>
+</div>
+
+<!-- DASHBOARD -->
+<section class="dashboard" id="dashboard">
+  <div class="section-label">// Portfolio Overview</div>
+  <div class="section-title animate-in">Your Crypto.<br>Working 24/7.</div>
+
+  <div class="portfolio-grid">
+
+    <!-- Total Balance -->
+    <div class="card animate-in">
+      <div class="card-label">Total Portfolio Value</div>
+      <div class="card-value">$<span id="portfolio-val">12,840</span></div>
+      <div class="card-sub"><span class="up">↑ +$284.20 today</span> · +2.26%</div>
+    </div>
+
+    <!-- Yield Earned -->
+    <div class="card animate-in">
+      <div class="card-label">Yield Earned (30d)</div>
+      <div class="card-value green">$<span id="yield-val">428</span></div>
+      <div class="card-sub">Blended APY: <span class="up">10.2%</span></div>
+    </div>
+
+    <!-- AI Status -->
+    <div class="card animate-in">
+      <div class="card-label">AI CFO Status</div>
+      <div style="display:flex;align-items:center;gap:12px;margin:8px 0">
+        <div class="live"><div class="live-dot"></div>ACTIVE</div>
+      </div>
+      <div class="card-sub" id="ai-status-text">Scanning Stellar DEX for arb opportunities...</div>
+    </div>
+
+    <!-- Allocation -->
+    <div class="card span2 animate-in">
+      <div class="card-label">Asset Allocation</div>
+      <div class="alloc-bar">
+        <div class="alloc-seg seg-lending" style="width:50%" id="bar-lending"></div>
+        <div class="alloc-seg seg-lp" style="width:30%" id="bar-lp"></div>
+        <div class="alloc-seg seg-arb" style="width:15%" id="bar-arb"></div>
+        <div class="alloc-seg seg-idle" style="width:5%" id="bar-idle"></div>
+      </div>
+      <div class="alloc-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--stellar)"></div>Blend Lending 50% · $6,420</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Liquidity Pool 30% · $3,852</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Arb Capital 15% · $1,926</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--muted)"></div>Idle USDC 5% · $642</div>
+      </div>
+    </div>
+
+    <!-- XLM Price Mini Chart -->
+    <div class="card animate-in">
+      <div class="card-label">XLM / USDC</div>
+      <div class="card-value stellar" id="xlm-price">$0.1024</div>
+      <div class="card-sub"><span class="up">↑ +3.2% (24h)</span></div>
+      <div class="mini-chart">
+        <svg class="chart-svg" viewBox="0 0 200 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(99,179,237,0.3)"/>
+              <stop offset="100%" stop-color="rgba(99,179,237,0)"/>
+            </linearGradient>
+          </defs>
+          <path id="chart-area" fill="url(#chartGrad)" opacity="0.8"/>
+          <path id="chart-line" fill="none" stroke="var(--stellar)" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- AI ACTIVITY FEED -->
+<section class="dashboard" style="padding-top:0" id="activity">
+  <div class="section-label">// AI Decision Log</div>
+  <div class="section-title animate-in">Every Move.<br>On-Chain.</div>
+
+  <div class="card animate-in">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="card-label" style="margin:0">Real-time AI executions recorded on Stellar</div>
+      <div class="live"><div class="live-dot"></div>LIVE</div>
+    </div>
+    <div class="feed" id="ai-feed"></div>
+  </div>
+</section>
+
+<!-- YIELD TABLE -->
+<section class="dashboard" style="padding-top:0" id="yield">
+  <div class="section-label">// Yield Optimizer</div>
+  <div class="section-title animate-in">Maximum Yield.<br>Zero Effort.</div>
+
+  <div class="card animate-in">
+    <table class="yield-table">
+      <thead>
+        <tr>
+          <th>Protocol</th>
+          <th>Asset</th>
+          <th>APY</th>
+          <th>Your Balance</th>
+          <th>Earned</th>
+          <th>Status</th>
+          <th>AI</th>
+        </tr>
+      </thead>
+      <tbody id="yield-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ARB SCANNER -->
+<section class="dashboard" style="padding-top:0" id="arbitrage">
+  <div class="section-label">// Arbitrage Engine</div>
+  <div class="section-title animate-in">Price Gaps.<br>Auto-Captured.</div>
+
+  <div class="arb-grid" id="arb-grid"></div>
+</section>
+
+<!-- RISK GUARD -->
+<section class="dashboard" style="padding-top:0" id="risk">
+  <div class="section-label">// Risk Guard</div>
+  <div class="section-title animate-in">AI Watches.<br>So You Don't Have To.</div>
+
+  <div class="risk-grid" id="risk-grid"></div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="logo" style="font-size:18px;margin-bottom:8px">Orbit<span style="color:var(--stellar)">Fi</span></div>
+    <div style="font-size:11px;color:var(--dim)">AI CFO on Stellar · Built by S-VYASA Blockchain Club</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:11px;color:var(--dim);margin-bottom:4px">Network: Stellar Testnet</div>
+    <div class="live"><div class="live-dot"></div>All systems operational</div>
+  </div>
+</footer>
+
+<script>
+// ── TICKER DATA ──
+const tickerData = [
+  {name:'XLM/USDC', val:'0.1024', chg:'+3.2%', up:true},
+  {name:'BTC/USDC', val:'94,280', chg:'+1.8%', up:true},
+  {name:'ETH/USDC', val:'3,142', chg:'-0.4%', up:false},
+  {name:'USDC/INR', val:'83.42', chg:'+0.1%', up:true},
+  {name:'XLM/INR', val:'8.54', chg:'+3.3%', up:true},
+  {name:'Blend APY', val:'9.2%', chg:'+0.3%', up:true},
+  {name:'LP Fees (24h)', val:'$184', chg:'+12%', up:true},
+  {name:'Arb Profit (24h)', val:'$92', chg:'+24%', up:true},
+];
+
+function buildTicker() {
+  const t = document.getElementById('ticker');
+  const doubled = [...tickerData, ...tickerData];
+  t.innerHTML = doubled.map(d => `
+    <div class="tick-item">
+      <span class="tick-name">${d.name}</span>
+      <span class="tick-val">${d.val}</span>
+      <span class="${d.up?'tick-up':'tick-down'}">${d.chg}</span>
+    </div>
+  `).join('');
+}
+buildTicker();
+
+// ── COUNTER ANIMATION ──
+function animateCounter(id, target, prefix='', suffix='', duration=2000) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  let start = null;
+  const step = ts => {
+    if(!start) start = ts;
+    const p = Math.min((ts-start)/duration, 1);
+    const ease = 1 - Math.pow(1-p, 3);
+    const val = Math.floor(ease * target);
+    el.textContent = prefix + val.toLocaleString() + suffix;
+    if(p < 1) requestAnimationFrame(step);
+    else el.textContent = prefix + target.toLocaleString() + suffix;
+  };
+  requestAnimationFrame(step);
+}
+
+setTimeout(() => {
+  animateCounter('tvl-counter', 2840000, '$');
+  animateCounter('apy-counter', 10);
+  animateCounter('tx-counter', 284);
+  animateCounter('arb-counter', 92, '$');
+}, 600);
+
+// ── CHART ──
+function buildChart() {
+  const points = [65,58,70,62,75,68,80,72,85,78,88,82,90,85,92,88,95,90,98,92,96,94,100,96,98,100,95,98,100,102];
+  const w=200, h=80;
+  const min=Math.min(...points), max=Math.max(...points);
+  const xs = points.map((_,i)=>i*(w/(points.length-1)));
+  const ys = points.map(p=>h - ((p-min)/(max-min))*(h*0.8) - h*0.1);
+  const lineD = xs.map((x,i)=>`${i===0?'M':'L'}${x},${ys[i]}`).join(' ');
+  const areaD = lineD + ` L${xs[xs.length-1]},${h} L0,${h} Z`;
+  document.getElementById('chart-line').setAttribute('d', lineD);
+  document.getElementById('chart-area').setAttribute('d', areaD);
+}
+buildChart();
+
+// ── XLM PRICE LIVE SIMULATION ──
+let xlmBase = 0.1024;
+setInterval(() => {
+  xlmBase += (Math.random()-0.48)*0.0003;
+  document.getElementById('xlm-price').textContent = '$' + xlmBase.toFixed(4);
+}, 2000);
+
+// ── AI FEED ──
+const feedEvents = [
+  {icon:'⚡', cls:'icon-gold', action:'Arbitrage executed: XLM/USDC', meta:'Stellar DEX → Market · Spread: 0.72%', profit:'+$4.82', delay:0},
+  {icon:'📈', cls:'icon-blue', action:'Rebalanced: USDC moved to Blend Protocol', meta:'Previous APY: 6.2% → New APY: 9.2% · +3%', profit:'+$2.10/mo', delay:800},
+  {icon:'🛡️', cls:'icon-green', action:'Risk check passed · Portfolio health: 94/100', meta:'Liquidation risk: Low · All positions safe', profit:'', delay:1600},
+  {icon:'💧', cls:'icon-green', action:'LP fees claimed: USDC/XLM pool', meta:'Pool share: 1.2% · Volume: $42,000', profit:'+$6.30', delay:2400},
+  {icon:'⚡', cls:'icon-gold', action:'Arbitrage executed: USDC/INR spread', meta:'Binance P2P → WazirX · Spread: 0.54%', profit:'+$3.21', delay:3200},
+  {icon:'🔄', cls:'icon-blue', action:'Compounded yield · Blend Protocol', meta:'Interest reinvested automatically', profit:'+$1.84', delay:4000},
+];
+
+function buildFeed() {
+  const feed = document.getElementById('ai-feed');
+  feed.innerHTML = '';
+  feedEvents.forEach((e,i) => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = 'feed-item';
+      div.innerHTML = `
+        <div class="feed-icon ${e.cls}">${e.icon}</div>
+        <div class="feed-content">
+          <div class="feed-action">${e.action}</div>
+          <div class="feed-meta">${e.meta} · ${getTimeAgo(i)}</div>
+        </div>
+        ${e.profit ? `<div class="feed-profit">${e.profit}</div>` : ''}
+      `;
+      feed.insertBefore(div, feed.firstChild);
+    }, e.delay);
+  });
+}
+
+function getTimeAgo(i) {
+  const times = ['just now','2m ago','5m ago','12m ago','18m ago','31m ago'];
+  return times[i] || '1h ago';
+}
+buildFeed();
+
+// Refresh feed every 8 seconds
+setInterval(() => {
+  const feed = document.getElementById('ai-feed');
+  const newEvents = [
+    {icon:'⚡', cls:'icon-gold', action:'Arbitrage executed: XLM price gap detected', meta:'Stellar DEX · Spread: 0.68%', profit:'+$'+( Math.random()*5+2).toFixed(2)},
+    {icon:'📊', cls:'icon-blue', action:'Portfolio rebalanced by AI CFO', meta:'Yield optimization · Goal: Maximize APY', profit:''},
+    {icon:'🛡️', cls:'icon-green', action:'Market dip detected · Holding positions', meta:'AI analysis: Temporary correction · No action', profit:''},
+  ];
+  const e = newEvents[Math.floor(Math.random()*newEvents.length)];
+  const div = document.createElement('div');
+  div.className = 'feed-item';
+  div.style.opacity='0';
+  div.innerHTML = `
+    <div class="feed-icon ${e.cls}">${e.icon}</div>
+    <div class="feed-content">
+      <div class="feed-action">${e.action}</div>
+      <div class="feed-meta">${e.meta} · just now</div>
+    </div>
+    ${e.profit ? `<div class="feed-profit">${e.profit}</div>` : ''}
+  `;
+  feed.insertBefore(div, feed.firstChild);
+  setTimeout(()=>div.style.opacity='1', 50);
+  if(feed.children.length > 6) feed.removeChild(feed.lastChild);
+}, 8000);
+
+// ── AI STATUS TEXT ──
+const statusTexts = [
+  'Scanning Stellar DEX for arb opportunities...',
+  'Monitoring Blend Protocol APY rates...',
+  'Analyzing USDC/XLM liquidity pool fees...',
+  'Checking market volatility indicators...',
+  'Optimizing yield allocation strategy...',
+  'Fetching INR/USDC P2P rates from exchanges...',
+];
+let statusIdx = 0;
+setInterval(() => {
+  statusIdx = (statusIdx+1) % statusTexts.length;
+  document.getElementById('ai-status-text').textContent = statusTexts[statusIdx];
+}, 3000);
+
+// ── YIELD TABLE ──
+const yieldData = [
+  {proto:'Blend Protocol', type:'Lending', asset:'USDC', apy:'9.2%', bal:'$6,420', earned:'$196.40', active:true},
+  {proto:'Stellar AMM', type:'Liquidity Pool', asset:'USDC/XLM', apy:'12.4%', bal:'$3,852', earned:'$158.20', active:true},
+  {proto:'Arb Reserve', type:'Arbitrage', asset:'USDC', apy:'Variable', bal:'$1,926', earned:'$73.80', active:true},
+  {proto:'USDC Reserve', type:'Idle', asset:'USDC', apy:'0%', bal:'$642', earned:'$0', active:false},
+];
+
+function buildYieldTable() {
+  document.getElementById('yield-tbody').innerHTML = yieldData.map(d=>`
+    <tr>
+      <td>
+        <div class="proto-name">${d.proto}</div>
+        <div class="proto-type">${d.type}</div>
+      </td>
+      <td>${d.asset}</td>
+      <td class="apy">${d.apy}</td>
+      <td>${d.bal}</td>
+      <td style="color:var(--green)">${d.earned}</td>
+      <td>${d.active
+        ? `<span class="status-active"><div class="status-dot"></div>Active</span>`
+        : `<span class="status-idle">Idle</span>`
+      }</td>
+      <td><span class="ai-badge">AUTO</span></td>
+    </tr>
+  `).join('');
+}
+buildYieldTable();
+
+// ── ARB GRID ──
+const arbData = [
+  {pair:'XLM / USDC', spread:'0.72%', buy:'Binance: $0.1017', sell:'Stellar DEX: $0.1024', profit:'$4.82'},
+  {pair:'USDT / INR', spread:'0.54%', buy:'WazirX: ₹82.98', sell:'CoinDCX: ₹83.43', profit:'$3.21'},
+  {pair:'USDC / XLM', spread:'0.61%', buy:'Stellar DEX: $0.1019', sell:'Market: $0.1025', profit:'$3.84'},
+  {pair:'BTC / USDC', spread:'0.18%', buy:'Binance P2P: $94,112', sell:'Kraken: $94,282', profit:'$1.70'},
+];
+
+function buildArbGrid() {
+  document.getElementById('arb-grid').innerHTML = arbData.map(d=>`
+    <div class="arb-item">
+      <div class="arb-pair">${d.pair}</div>
+      <div class="arb-spread">${d.spread} spread</div>
+      <div class="arb-detail">Buy: ${d.buy}</div>
+      <div class="arb-detail">Sell: ${d.sell}</div>
+      <div style="margin-top:8px;font-size:13px;color:var(--green)">Est. profit: ${d.profit}</div>
+      <button class="exec-btn" onclick="execArb(this,'${d.pair}')">⚡ Execute Trade</button>
+    </div>
+  `).join('');
+}
+buildArbGrid();
+
+// Update arb spreads
+setInterval(() => {
+  document.querySelectorAll('.arb-spread').forEach(el => {
+    const base = parseFloat(el.textContent);
+    const newVal = Math.max(0.1, base + (Math.random()-0.5)*0.1);
+    el.textContent = newVal.toFixed(2) + '% spread';
+    el.style.color = newVal > 0.5 ? 'var(--gold)' : 'var(--dim)';
+  });
+}, 4000);
+
+function execArb(btn, pair) {
+  btn.textContent = '⏳ Executing...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '✅ Profit Captured!';
+    btn.style.background = 'rgba(72,187,120,0.15)';
+    btn.style.borderColor = 'rgba(72,187,120,0.3)';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => {
+      btn.textContent = '⚡ Execute Trade';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      btn.disabled = false;
+    }, 3000);
+  }, 1800);
+}
+
+// ── RISK GRID ──
+const riskData = [
+  {metric:'Portfolio Health', value:'94/100', cls:'safe', fill:94, color:'var(--green)'},
+  {metric:'Liquidation Risk', value:'LOW', cls:'safe', fill:15, color:'var(--green)'},
+  {metric:'Volatility Index', value:'MEDIUM', cls:'warning', fill:45, color:'var(--gold)'},
+  {metric:'Smart Contract Risk', value:'LOW', cls:'safe', fill:20, color:'var(--green)'},
+  {metric:'IL Risk (AMM)', value:'2.1%', cls:'safe', fill:21, color:'var(--green)'},
+  {metric:'Market Correlation', value:'0.64', cls:'warning', fill:64, color:'var(--gold)'},
+];
+
+function buildRiskGrid() {
+  document.getElementById('risk-grid').innerHTML = riskData.map(d=>`
+    <div class="risk-item">
+      <div class="risk-metric">${d.metric}</div>
+      <div class="risk-value ${d.cls}">${d.value}</div>
+      <div class="risk-bar-wrap">
+        <div class="risk-bar-fill" style="width:${d.fill}%;background:${d.color}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+buildRiskGrid();
+
+// ── SCROLL ANIMATIONS ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e,i) => {
+    if(e.isIntersecting) {
+      setTimeout(()=>e.target.classList.add('visible'), i*100);
+    }
+  });
+}, {threshold:0.1});
+document.querySelectorAll('.animate-in').forEach(el => observer.observe(el));
+
+// ── CONNECT WALLET ──
+function connectWallet() {
+  const btn = document.querySelector('.nav-btn');
+  btn.textContent = 'Connecting...';
+  setTimeout(() => {
+    btn.textContent = 'G7KXF...3QM2';
+    btn.style.background = 'var(--green)';
+    // Show connected notification
+    showNotif('Freighter wallet connected · Stellar Testnet');
+  }, 1200);
+}
+
+function showNotif(msg) {
+  const n = document.createElement('div');
+  n.style.cssText = `
+    position:fixed;bottom:24px;right:24px;z-index:999;
+    background:var(--card);border:1px solid var(--green);
+    padding:16px 24px;border-radius:6px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--green);
+    animation:fadeUp 0.3s ease;
+  `;
+  n.textContent = '✓ ' + msg;
+  document.body.appendChild(n);
+  setTimeout(()=>n.remove(), 3000);
+}
+
+function scrollToDashboard() {
+  document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});
+}
+
+// ── PORTFOLIO VALUE LIVE ──
+let portBase = 12840;
+setInterval(() => {
+  portBase += (Math.random()-0.48)*5;
+  document.getElementById('portfolio-val').textContent = Math.floor(portBase).toLocaleString();
+}, 3000);
+
+</script>
+</body>
+</html>
